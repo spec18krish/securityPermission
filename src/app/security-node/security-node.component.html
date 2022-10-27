@@ -6,7 +6,7 @@
          [parentIdExpr]="'parentId'"
         >
 
-        <dxi-column [cellTemplate]="'permissionNameTemplate'">
+        <dxi-column [caption]="'Application Area'" [cellTemplate]="'permissionNameTemplate'">
           <div *dxTemplate="let permissionName of 'permissionNameTemplate'">
             <span>
               {{permissionName?.data?.permissionName}}

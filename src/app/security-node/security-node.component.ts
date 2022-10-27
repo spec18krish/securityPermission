@@ -20,15 +20,29 @@ export class SecurityNodeComponent implements OnInit {
 
   onPermissionNodeClick(data: SecurityNode, permissionName: SecurityPermissionName) {
     const valueToSet = !data[permissionName];
+    data[permissionName] = valueToSet;
     this.updateChildrenAndGrantChildrenPermission(data, permissionName, valueToSet);
     this.updateParentAndGrantParentPermission(data, permissionName, valueToSet);
   }
 
-  setParentPermission(data: SecurityNode, permissionName: SecurityPermissionName, valueToSet: boolean) {
-    const hasAllChildPermission = this.permissions.every(e => e[permissionName]);
-    const hasNoChildPermission = this.permissions.some(s => s[permissionName]);
+  getParents = (data: SecurityNode) => {
+   return this.permissions.filter(f => data.parentId && f.id === data.parentId);
+  }
 
-    data[permissionName] = hasAllChildPermission || !hasNoChildPermission || undefined;
+  getChildrens = (data: SecurityNode) => {
+    return this.permissions.filter(f => f.parentId && f.parentId === data.id);
+  }
+
+  setParentPermission(data: SecurityNode, permissionName: SecurityPermissionName, valueToSet: boolean) {
+    let currentValue = undefined;
+    const childrens = this.getChildrens(data);
+    const hasAllChildPermission = childrens.every(e => e[permissionName]);
+    const hasAnyChildPermission = childrens.some(s => s[permissionName]);
+
+    if (hasAllChildPermission) currentValue = hasAllChildPermission;
+    if (!hasAnyChildPermission) currentValue = false;
+
+    data[permissionName] = currentValue;
   }
 
   setChildPermission(data: SecurityNode, permissionName: SecurityPermissionName, valueToSet: boolean) {
@@ -54,18 +68,13 @@ export class SecurityNodeComponent implements OnInit {
   }
 
   updateParentAndGrantParentPermission(data: SecurityNode, permissionName: SecurityPermissionName, valueToSet: boolean) {
-    data[permissionName] = valueToSet;
     let hasParent = permissions.some(f => f.id === data.parentId && data.parentId);
     if (hasParent) {
       let parents = permissions.filter(f => f.id === data.parentId && data.parentId);
       parents.forEach(node => {
-       this.setParentPermission(data, permissionName, valueToSet);
+        this.setParentPermission(node, permissionName, valueToSet);
         this.updateParentAndGrantParentPermission(node, permissionName, valueToSet);
       })
-    }
-    else {
-      this.setParentPermission(data, permissionName, valueToSet);
-      return;
     }
   }
 

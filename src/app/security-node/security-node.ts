@@ -33,9 +33,14 @@ export class SecurityNode {
 
     let hasAllPermission = this.canRead && this.canDelete && this.canUpdate && this.canCreate;
     let hasNoPermission =  !this.canRead && !this.canDelete && !this.canUpdate && !this.canCreate;
-    if (hasNoPermission) {
+    let hasAnyUndefined = this.canRead === undefined || this.canDelete === undefined || this.canUpdate === undefined || this.canCreate === undefined;
+    if (hasNoPermission && !hasAnyUndefined) {
       this.allPermission = false;
       return;
+    }
+
+    if (hasAnyUndefined) {
+      this.allPermission = undefined;
     }
     this.allPermission = hasAllPermission || undefined;
   }
