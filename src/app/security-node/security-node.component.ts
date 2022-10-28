@@ -18,11 +18,23 @@ export class SecurityNodeComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  startUpdate(data: SecurityNode, permissionName: SecurityPermissionName, valueToSet: boolean) {
+    this.updateChildrenAndGrantChildrenPermission(data, permissionName, valueToSet);
+    this.updateParentAndGrantParentPermission(data, permissionName, valueToSet);
+  }
+
   onPermissionNodeClick(data: SecurityNode, permissionName: SecurityPermissionName) {
     const valueToSet = !data[permissionName];
     data[permissionName] = valueToSet;
-    this.updateChildrenAndGrantChildrenPermission(data, permissionName, valueToSet);
-    this.updateParentAndGrantParentPermission(data, permissionName, valueToSet);
+    if (permissionName === this.securityPermissionName.All) {
+      this.startUpdate(data, SecurityPermissionName.Create, valueToSet);
+      this.startUpdate(data, SecurityPermissionName.Edit, valueToSet);
+      this.startUpdate(data, SecurityPermissionName.Read, valueToSet);
+      this.startUpdate(data, SecurityPermissionName.Delete, valueToSet);
+    }
+    else {
+      this.startUpdate(data, permissionName, valueToSet)
+    }
   }
 
   getParents = (data: SecurityNode) => {
@@ -38,18 +50,13 @@ export class SecurityNodeComponent implements OnInit {
     const childrens = this.getChildrens(data);
     const hasAllChildPermission = childrens.every(e => e[permissionName]);
     const hasAnyChildPermission = childrens.some(s => s[permissionName]);
+    const hasAnyUndefined = childrens.some(s => s[permissionName] === undefined);
 
     if (hasAllChildPermission) currentValue = hasAllChildPermission;
     if (!hasAnyChildPermission) currentValue = false;
+    if (hasAnyUndefined) currentValue = undefined;
 
     data[permissionName] = currentValue;
-  }
-
-  setChildPermission(data: SecurityNode, permissionName: SecurityPermissionName, valueToSet: boolean) {
-    const hasAllChildPermission = this.permissions.every(e => e[permissionName]);
-    const hasNoChildPermission = this.permissions.some(s => s[permissionName]);
-
-    data[permissionName] = hasAllChildPermission || !hasNoChildPermission || undefined;
   }
 
   updateChildrenAndGrantChildrenPermission(data: SecurityNode, permissionName: SecurityPermissionName, valueToSet: boolean) {

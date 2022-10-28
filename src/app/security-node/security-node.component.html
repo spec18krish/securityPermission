@@ -57,3 +57,40 @@
 
     </dx-tree-list>
 </div>
+
+<h3 style="margin-top: 20px;">Summary</h3>
+<div style="width: 30vw;margin-top:10px">
+  <dx-tree-list
+         [dataSource]="permissions"
+         [keyExpr]="'id'"
+         [parentIdExpr]="'parentId'"
+         [showBorders]="true"
+         [showColumnLines]="true"
+        >
+
+        <dxi-column [caption]="'Application Area'" [cellTemplate]="'permissionNameTemplate'">
+          <div *dxTemplate="let permissionName of 'permissionNameTemplate'">
+            <span>
+              {{permissionName?.data?.permissionName}}
+            </span>
+          </div>
+        </dxi-column>
+
+        <dxi-column [caption]="'Permission Summary'" [cellTemplate]="'readPermissionTemplate'">
+          <div *dxTemplate="let permissionSummary of 'readPermissionTemplate'">
+            <span>
+              {{permissionSummary?.data?.permissionSummary}}
+            </span>
+          </div>
+        </dxi-column>
+
+      <dxi-column [caption]="'Permission Number'" [cellTemplate]="'allPermissionTemplate'">
+        <div *dxTemplate="let permissionNumber of 'allPermissionTemplate'">
+          <span>
+            {{permissionNumber?.data?.permissionType}}
+          </span>
+        </div>
+      </dxi-column>
+
+    </dx-tree-list>
+</div>

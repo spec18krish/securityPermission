@@ -23,4 +23,9 @@ import { SecurityNode } from './security-node';
    new SecurityNode(18, 'C5-2', 16),
    new SecurityNode(19, 'C5-3', 16),
    new SecurityNode(20, 'C5-4', 16),
+   new SecurityNode(21, 'D'),
+   new SecurityNode(22, 'E'),
+   new SecurityNode(23, 'F'),
+   new SecurityNode(24, 'I'),
+   new SecurityNode(25, 'J'),
  ];

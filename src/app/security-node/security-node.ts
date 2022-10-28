@@ -1,3 +1,4 @@
+import { PermissionType } from './permission-type';
 export class SecurityNode {
 
   private _canRead: boolean | undefined = false;
@@ -5,11 +6,13 @@ export class SecurityNode {
   private _canDelete: boolean | undefined = false;
   private _canCreate: boolean | undefined = false;
   private _allPermission: boolean | undefined = false;
-  private _needUpdate: boolean = true;
+  private _canUpdateFullPermission: boolean = true;
+  private _permissionType: PermissionType = PermissionType.NoAccess;
 
   public permissionName: string = '';
   public id!: number | undefined;
   public parentId!:number | undefined;
+  public permissionSummary: string = 'No Access';
 
   constructor(id?: number, name?: string, parentId?: number) {
     this.id = id;
@@ -17,17 +20,22 @@ export class SecurityNode {
     this.parentId = parentId;
   }
 
+  public updatePermissionTypeAndPermissionSummary() {
+
+  }
+
   public setFullPermission(value: boolean | undefined) {
     let hasAllPermission = this.canRead && this.canDelete && this.canUpdate && this.canCreate;
     if (value !== undefined) {
-      this._needUpdate = false;
+      this._canUpdateFullPermission = false;
       this.canCreate = this.canUpdate = this.canRead = this.canDelete = value;
-      this._needUpdate = true;
+      this.updatePermissionTypeAndPermissionSummary();
+      this._canUpdateFullPermission = true;
     }
   }
 
   public updatePermission(value: boolean | undefined) {
-    if (!this._needUpdate) {
+    if (!this._canUpdateFullPermission) {
       return
     }
 
@@ -43,6 +51,15 @@ export class SecurityNode {
       this.allPermission = undefined;
     }
     this.allPermission = hasAllPermission || undefined;
+    this.updatePermissionTypeAndPermissionSummary();
+  }
+
+  public get permissionType() {
+    return this._permissionType;
+  }
+
+  public set PermissionType(value: PermissionType) {
+    this._permissionType = value;
   }
 
   public get allPermission() {
