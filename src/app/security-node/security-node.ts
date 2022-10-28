@@ -21,7 +21,40 @@ export class SecurityNode {
   }
 
   public updatePermissionTypeAndPermissionSummary() {
+    let permission: PermissionType = PermissionType.NoAccess;
+    const summary: string[] = [];
 
+    if (this._canCreate) {
+      permission |= PermissionType.Create;
+      summary.push('Create');
+    }
+    if (this._canUpdate) {
+      permission |= PermissionType.Edit;
+      summary.push('Update');
+    }
+    if (this._canRead) {
+      permission |= PermissionType.Read;
+      summary.push('Read');
+    }
+    if (this._canDelete) {
+      permission |= PermissionType.Delete;
+      summary.push('Delete');
+    }
+
+    // if (this.canCreate && this.canUpdate && this._canDelete && this._canRead) {
+    //   this.permissionSummary = 'All';
+    //   this.permissionType = PermissionType.FullAcess;
+    //   return;
+    // }
+
+    if (!this.canCreate && !this.canUpdate && !this._canDelete && !this._canRead) {
+      this.permissionSummary = 'No Access';
+      this.permissionType = PermissionType.NoAccess;
+      return;
+    }
+
+    this.permissionSummary = summary?.join(', ');
+    this.permissionType = permission;
   }
 
   public setFullPermission(value: boolean | undefined) {
@@ -58,7 +91,7 @@ export class SecurityNode {
     return this._permissionType;
   }
 
-  public set PermissionType(value: PermissionType) {
+  public set permissionType(value: PermissionType) {
     this._permissionType = value;
   }
 
