@@ -4,6 +4,7 @@
          [dataSource]="permissions"
          [keyExpr]="'id'"
          [parentIdExpr]="'parentId'"
+         [showBorders]="true"
         >
 
         <dxi-column [caption]="'Application Area'" [cellTemplate]="'permissionNameTemplate'">
@@ -14,47 +15,75 @@
           </div>
         </dxi-column>
 
-      <dxi-column [caption]="'All'" [cellTemplate]="'allPermissionTemplate'">
+      <dxi-column [caption]="'All'" [cellTemplate]="'allPermissionTemplate'" [headerCellTemplate]="'allPermissionHeaderTemplate'">
         <div *dxTemplate="let allPermission of 'allPermissionTemplate'">
           <span (click)="onPermissionNodeClick(allPermission?.data, securityPermissionName.All)">
            <dx-check-box [value]="allPermission?.data?.allPermission" ></dx-check-box>
           </span>
         </div>
+
+        <div *dxTemplate="let permissionName of 'allPermissionHeaderTemplate'">
+          <span (click)="onPermissionHeaderClick(securityPermissionName.All)">
+            <dx-check-box [text]="'All'" [value]="permissionHeader.allPermission"></dx-check-box>
+          </span>
+        </div>
       </dxi-column>
 
-      <dxi-column [caption]="'Read'" [cellTemplate]="'readPermissionTemplate'">
+      <dxi-column [caption]="'Read'" [cellTemplate]="'readPermissionTemplate'" [headerCellTemplate]="'readPermissionHeaderTemplate'" >
         <div *dxTemplate="let readPermission of 'readPermissionTemplate'">
           <span (click)="onPermissionNodeClick(readPermission?.data, securityPermissionName.Read)">
             <dx-check-box [value]="readPermission?.data?.canRead" ></dx-check-box>
           </span>
         </div>
+
+        <div *dxTemplate="let permissionName of 'readPermissionHeaderTemplate'">
+          <span (click)="onPermissionHeaderClick(securityPermissionName.Read)">
+            <dx-check-box [text]="'Read'" [value]="permissionHeader.canRead" ></dx-check-box>
+          </span>
+        </div>
       </dxi-column>
 
-      <dxi-column [caption]="'Edit'" [cellTemplate]="'editPermissionTemplate'">
+      <dxi-column [caption]="'Update'" [cellTemplate]="'editPermissionTemplate'" [headerCellTemplate]="'editPermissionHeaderTemplate'">
         <div *dxTemplate="let editPermission of 'editPermissionTemplate'">
           <span (click)="onPermissionNodeClick(editPermission?.data, securityPermissionName.Edit)">
             <dx-check-box [value]="editPermission?.data?.canUpdate" ></dx-check-box>
           </span>
         </div>
+
+        <div *dxTemplate="let permissionName of 'editPermissionHeaderTemplate'">
+          <span (click)="onPermissionHeaderClick(securityPermissionName.Edit)">
+            <dx-check-box [text]="'Update'" [value]="permissionHeader.canUpdate"></dx-check-box>
+          </span>
+        </div>
       </dxi-column>
 
-      <dxi-column [caption]="'Create'" [cellTemplate]="'createPermissionTemplate'">
+      <dxi-column [caption]="'Create'" [cellTemplate]="'createPermissionTemplate'" [headerCellTemplate]="'createPermissionHeaderTemplate'">
         <div *dxTemplate="let createPermission of 'createPermissionTemplate'">
           <span (click)="onPermissionNodeClick(createPermission?.data, securityPermissionName.Create)">
             <dx-check-box [value]="createPermission?.data?.canCreate" ></dx-check-box>
           </span>
         </div>
+
+        <div *dxTemplate="let permissionName of 'createPermissionHeaderTemplate'">
+          <span (click)="onPermissionHeaderClick(securityPermissionName.Create)">
+            <dx-check-box [text]="'Create'" [value]="permissionHeader.canCreate" ></dx-check-box>
+          </span>
+        </div>
       </dxi-column>
 
-      <dxi-column [caption]="'Delete'" [cellTemplate]="'deletePermissionTemplate'">
+      <dxi-column [caption]="'Delete'" [cellTemplate]="'deletePermissionTemplate'" [headerCellTemplate]="'deletePermissionHeaderTemplate'" >
         <div *dxTemplate="let deletePermission of 'deletePermissionTemplate'">
           <span (click)="onPermissionNodeClick(deletePermission?.data, securityPermissionName.Delete)">
             <dx-check-box [value]="deletePermission?.data?.canDelete" ></dx-check-box>
           </span>
         </div>
+
+        <div *dxTemplate="let permissionName of 'deletePermissionHeaderTemplate'">
+          <span (click)="onPermissionHeaderClick(securityPermissionName.Delete)">
+            <dx-check-box [text]="'Delete'" [value]="permissionHeader.canDelete"></dx-check-box>
+          </span>
+        </div>
       </dxi-column>
-
-
     </dx-tree-list>
 </div>
 

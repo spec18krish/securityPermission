@@ -13,7 +13,18 @@ export class SecurityNodeComponent implements OnInit {
   permissions = permissions;
   securityPermissionName = SecurityPermissionName;
 
-  constructor() { }
+  allPermissionHeader: boolean = false;
+  readPermissionHeader: boolean = false;
+  updatePermissionHeader: boolean = false;
+  createPermissionHeader: boolean = false;
+  deletePermissionHeader: boolean = false;
+
+  permissionHeader: SecurityNode = new SecurityNode();
+
+
+  constructor() {
+    //this.permissionHeader.canCreate = true;
+   }
 
   ngOnInit(): void {
   }
@@ -23,8 +34,19 @@ export class SecurityNodeComponent implements OnInit {
     this.updateParentAndGrantParentPermission(data, permissionName, valueToSet);
   }
 
+  onPermissionHeaderClick(permissionName: SecurityPermissionName, eventArgs?: any) {
+    const valueToSet = this.permissionHeader[permissionName] = !this.permissionHeader[permissionName] as boolean;
+    this.permissions.forEach((node) => {
+      this.setPermission(node, permissionName, valueToSet);
+    });
+  }
+
   onPermissionNodeClick(data: SecurityNode, permissionName: SecurityPermissionName) {
-    const valueToSet = !data[permissionName];
+   const valueToSet = !data[permissionName];
+   this.setPermission(data, permissionName, valueToSet);
+  }
+
+  setPermission(data: SecurityNode, permissionName: SecurityPermissionName, valueToSet: boolean) {
     data[permissionName] = valueToSet;
     if (permissionName === this.securityPermissionName.All) {
       this.startUpdate(data, SecurityPermissionName.Create, valueToSet);
