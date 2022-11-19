@@ -181,6 +181,7 @@ export class CoinSaleComponent implements OnInit {
           symbol: this.symbolCurrency,
           quantity: +coinsQtyToBuy || 0,
           price: priceHistory.lowPrice,
+          clientOrderId: Date.now(),
       };
 
       this.httpClient.post<NewOrderModel[]>('http://localhost:26154/api/CoinSale/buyOrder', params, { responseType: 'json'})

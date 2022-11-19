@@ -7,4 +7,5 @@ export interface OrderRequest {
     price: number;
     side?: Side;
     timeInForce?: TimeInForce;
+    clientOrderId?: number;
 }
