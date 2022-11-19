@@ -33,7 +33,8 @@
             "styles": [
               "src/styles.scss",
               "node_modules/devextreme/dist/css/dx.light.css",
-              "node_modules/devextreme/dist/css/dx.material.blue.light.css"
+              "node_modules/devextreme/dist/css/dx.material.blue.light.css",
+              "node_modules/bootstrap/dist/css/bootstrap.css"
             ],
             "scripts": []
           },
