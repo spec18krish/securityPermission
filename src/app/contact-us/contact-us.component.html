@@ -1,0 +1,36 @@
+
+<div class="container">
+  <div class="col-xs-8 p-5 mt-5">
+  <form #form (ngSubmit)="onFormSubmit($event)" [formGroup]="contactUsForm">
+      <div>
+        <label class="form-label" for="name">Name:</label>
+        <input [formControlName]="formControlsName.name" class="form-control" name="name" type="text" />
+      </div>
+
+      <div>
+        <label class="form-label" for="email">Email:</label>
+        <input [formControlName]="formControlsName.email" class="form-control" name="email" type="email" />
+      </div>
+
+      <div>
+        <label class="form-label" for="description">Description:</label>
+        <textarea [formControlName]="formControlsName.description" class="form-control" name="description"></textarea>
+      </div>
+
+      <div>
+        <label (click)="addReason()" class="btn mt-2" text="Add" value="Submit">Add Reason</label>
+      </div>
+
+      <div [formArrayName]="formControlsName.reasonFA">
+        <div *ngFor="let reason of formControls.reasonFA.controls; let i = index" [formGroupName]="formControls.reasonFA[i]">
+          <label>Reason</label>
+          <textarea formControlName="reason"></textarea>
+        </div>
+      </div>
+
+      <div>
+        <input click="form-control" class="btn btn-info mt-2" type="submit" value="Submit" />
+      </div>
+  </form>
+</div>
+</div>

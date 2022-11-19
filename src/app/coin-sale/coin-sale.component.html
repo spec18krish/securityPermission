@@ -1,0 +1,54 @@
+
+
+<div class="container-fluid">
+
+  <div class="col-sm-12 mt-3">
+    <div class="p-2">
+      <dx-button [text]="'Buy Order'" [type]="'default'" [stylingMode]="'contained'" ></dx-button>
+      <span class="ml-2"></span>
+      <dx-button [text]="'Sell Order'" [type]="'default'" [stylingMode]="'contained'" ></dx-button>
+      <span class="ml-2"></span>
+      <dx-button [text]="'Cancel Order'" [type]="'default'" [stylingMode]="'contained'" (onClick)="cancelOrder()" ></dx-button>
+      <span class="ml-2"></span>
+      <dx-button [text]="!holdProcessing ? 'Stop Processing' : 'Start Processing'" [type]="'default'" [stylingMode]="'contained'" (onClick)="onHoldProcessing()" ></dx-button>
+    </div>
+  </div>
+
+  <div class="col-sm-12 mt-3">
+    <div class="card">
+      <div class="card-header"><h6>Available Funds:</h6></div>
+      <div class="card-body">
+        <span class=" ml-1">{{symbolCurrency}}:</span> <span class="badge badge-pill badge-primary ml-1">{{symbolCurrencyBalance}}</span>
+        <span class=" ml-2">{{tradingCurrency}}:</span> <span class="badge badge-pill badge-primary ml-1">{{tradingCurrencyBalance}}</span>
+        <span class=" ml-2">Current Status:</span> <span class="badge badge-pill badge-warning ml-1">{{currentStatus}}</span>
+        <span class=" ml-2">Max Order QTY:</span> <span class="badge badge-pill badge-warning ml-1">{{maximumOrderQuantity}}</span>
+        <span class=" ml-2">Min Order QTY:</span> <span class="badge badge-pill badge-warning ml-1">{{minimumOrderQuantity}}</span>
+        <span class=" ml-2">Max Buy Price:</span> <span class="badge badge-pill badge-warning ml-1">{{maximumBuyPrice}}</span>
+        <span class=" ml-2">Min Buy Price:</span> <span class="badge badge-pill badge-warning ml-1">{{minimumBuyPrice}}</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div *ngIf="currentOrders?.length" class="col-sm-12 mt-3">
+    <h5>New Orders:</h5>
+    <dx-data-grid [dataSource]="currentOrders">
+      <!-- <dxi-column [cellTemplate]="'cancelOrderCellTemplate'">
+         <div *dxTemplate="let cancelOrder of 'cancelOrderCellTemplate'">
+          <dx-button [text]="'Cancel Order'" ></dx-button>
+         </div>
+      </dxi-column> -->
+      <dxo-pager [allowedPageSizes]="[10,20,50]" [showPageSizeSelector]="true" [showNavigationButtons]="true" [showInfo]="true"></dxo-pager>
+      <dxo-paging [enabled]="true" [pageSize]="10"></dxo-paging>
+    </dx-data-grid>
+  </div>
+
+  <div class="col-sm-12 mt-3">
+    <h5>Market Info:</h5>
+    <dx-data-grid [dataSource]="coinSaleData">
+      <dxo-pager [allowedPageSizes]="[10,20,50]" [showPageSizeSelector]="true" [showNavigationButtons]="true" [showInfo]="true"></dxo-pager>
+      <dxo-paging [enabled]="true" [pageSize]="10"></dxo-paging>
+    </dx-data-grid>
+  </div>
+
+</div>
