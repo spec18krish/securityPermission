@@ -10,6 +10,8 @@ import { SecurityNodeComponent } from './security-node/security-node.component';
 import { ContactUsComponent } from './contact-us/contact-us.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CoinSaleComponent } from './coin-sale/coin-sale.component';
+import { BinanceSocketComponent } from './binance-socket/binance-socket.component';
+import { FormatTimePipe } from './format-time.pipe';
 
 @NgModule({
   declarations: [
@@ -17,7 +19,9 @@ import { CoinSaleComponent } from './coin-sale/coin-sale.component';
     GridComponent,
     SecurityNodeComponent,
     ContactUsComponent,
-    CoinSaleComponent
+    CoinSaleComponent,
+    BinanceSocketComponent,
+    FormatTimePipe
   ],
   imports: [
     BrowserModule,

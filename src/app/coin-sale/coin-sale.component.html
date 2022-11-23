@@ -16,7 +16,7 @@
 
   <div class="col-sm-12 mt-3">
     <div class="card">
-      <div class="card-header"><h6>Available Funds:</h6></div>
+      <div class="card-header"><h6>Current Status:</h6></div>
       <div class="card-body">
         <span class=" ml-1">{{symbolCurrency}}:</span> <span class="badge badge-pill badge-primary ml-1">{{symbolCurrencyBalance}}</span>
         <span class=" ml-2">{{tradingCurrency}}:</span> <span class="badge badge-pill badge-primary ml-1">{{tradingCurrencyBalance}}</span>
@@ -32,12 +32,33 @@
 
   <div *ngIf="currentOrders?.length" class="col-sm-12 mt-3">
     <h5>New Orders:</h5>
-    <dx-data-grid [dataSource]="currentOrders">
-      <!-- <dxi-column [cellTemplate]="'cancelOrderCellTemplate'">
+    <dx-data-grid
+       [dataSource]="currentOrders"
+       [allowColumnResizing]="true"
+       [allowColumnReordering]="true"
+     >
+      <dxi-column [dataField]="'symbol'"></dxi-column>
+      <dxi-column [dataField]="'orderId'"></dxi-column>
+      <dxi-column [dataField]="'clientOrderId'"></dxi-column>
+      <dxi-column [dataField]="'transactTime'"></dxi-column>
+      <dxi-column [dataField]="'price'"></dxi-column>
+      <dxi-column [dataField]="'origQty'"></dxi-column>
+      <dxi-column [dataField]="'executedQty'"></dxi-column>
+      <dxi-column [dataField]="'cummulativeQuoteQty'"></dxi-column>
+      <dxi-column [dataField]="'timeInForce'"></dxi-column>
+      <dxi-column [dataField]="'type'"></dxi-column>
+      <dxi-column [dataField]="'side'"></dxi-column>
+      <dxi-column [dataField]="'stopPrice'"></dxi-column>
+      <dxi-column [dataField]="'icebergQty'"></dxi-column>
+      <dxi-column [dataField]="'updateTime'"></dxi-column>
+      <dxi-column [dataField]="'isWorking'"></dxi-column>
+      <dxi-column [dataField]="'time'"></dxi-column>
+      <dxi-column [cellTemplate]="'cancelOrderCellTemplate'">
          <div *dxTemplate="let cancelOrder of 'cancelOrderCellTemplate'">
-          <dx-button [text]="'Cancel Order'" ></dx-button>
+          <dx-button [type]="'danger'" [text]="'Cancel'" (onClick)="cancelCurrentOrder(cancelOrder?.data)" ></dx-button>
          </div>
-      </dxi-column> -->
+      </dxi-column>
+      <dxo-column-chooser [allowSearch]="true" [enabled]="true"></dxo-column-chooser>
       <dxo-pager [allowedPageSizes]="[10,20,50]" [showPageSizeSelector]="true" [showNavigationButtons]="true" [showInfo]="true"></dxo-pager>
       <dxo-paging [enabled]="true" [pageSize]="10"></dxo-paging>
     </dx-data-grid>
@@ -50,5 +71,7 @@
       <dxo-paging [enabled]="true" [pageSize]="10"></dxo-paging>
     </dx-data-grid>
   </div>
+
+  <app-binance-socket></app-binance-socket>
 
 </div>

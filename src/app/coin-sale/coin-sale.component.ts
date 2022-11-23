@@ -1,3 +1,4 @@
+import { CoinMarketInfo } from './../model/coin-market-info';
 import { TimeInForce } from './../enum/time-in-force';
 import { AccountInfo } from './../model/account-info-model';
 import { NewOrderModel } from './../model/new-order-mode';
@@ -7,7 +8,7 @@ import { Component, OnInit } from '@angular/core';
 import * as moment from 'moment';
 import { OrderRequest } from '../model/order-request';
 import { Side } from '../enum/side';
-import { catchError, Subject, takeUntil } from 'rxjs';
+import { catchError, firstValueFrom, Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-coin-sale',
@@ -18,7 +19,7 @@ export class CoinSaleComponent implements OnInit {
 
   coinSaleData: PriceHistoryModel[] = [];
   orderData: NewOrderModel[] = [];
-  currentOrders!: NewOrderModel[];
+  currentOrders!: CoinMarketInfo[];
   hasExistingOrder: boolean = false;
   cycleCompleted = true;
   holdProcessing = true;
@@ -121,7 +122,7 @@ export class CoinSaleComponent implements OnInit {
 
   getCurrentOrder(priceHistory: PriceHistoryModel) {
     let params = {params: {symbol: this.symbolCurrency}};
-    this.httpClient.get<NewOrderModel[]>('http://localhost:26154/api/CoinSale/currentOrder', params)
+    this.httpClient.get<CoinMarketInfo[]>('http://localhost:26154/api/CoinSale/currentOrder', params)
         .pipe(
           takeUntil(this.$destroySubscription)
         )
@@ -142,7 +143,7 @@ export class CoinSaleComponent implements OnInit {
 
     // if there is already an existing order then don't buy
     if (hasExistingBuyOrder || hasExistingSellOrder){
-        return this.completeTheCycle();
+        return this.processSellOrder(priceHistory);
     }
 
     if (!priceHistory || priceHistory?.highPrice === 0 || priceHistory?.lastPrice === 0 || priceHistory?.lowPrice === 0) {
@@ -169,7 +170,8 @@ export class CoinSaleComponent implements OnInit {
     let availableCoins = coinAsset?.free || 0;
     let availableusdt = usdAsset?.free || 0;
     let availableCoinsToBuy =   (+availableusdt.toFixed(0) / +priceHistory.lowPrice).toFixed(0);
-    let hasMoneyToBuy = availableusdt >= (availableCoins * priceHistory.lowPrice);
+    //let hasMoneyToBuy = availableusdt >= (availableCoins * priceHistory.lowPrice); // not sure why I did this
+    let hasMoneyToBuy = availableusdt >= (+this.minimumOrderQuantity * priceHistory.lowPrice);
 
     let canBuyOrder = availableusdt > 0 && hasMoneyToBuy && +availableCoinsToBuy > 0 && +availableCoinsToBuy > +this.minimumOrderQuantity;
 
@@ -181,7 +183,7 @@ export class CoinSaleComponent implements OnInit {
           symbol: this.symbolCurrency,
           quantity: +coinsQtyToBuy || 0,
           price: priceHistory.lowPrice,
-          clientOrderId: Date.now(),
+          clientOrderId: Date.now().toString(),
       };
 
       this.httpClient.post<NewOrderModel[]>('http://localhost:26154/api/CoinSale/buyOrder', params, { responseType: 'json'})
@@ -199,50 +201,78 @@ export class CoinSaleComponent implements OnInit {
     }
   }
 
-  public processSellOrder(priceHistory: PriceHistoryModel) {
-    let totalAvailableCoins = this.accountInfo.balances.find(f => f.asset === this.symbol)?.free ?? 0;
+  public async getFilledBuyOrder() {
+    let params = {params: {symbol: this.symbolCurrency}};
+
+    return await firstValueFrom(
+      this.httpClient.get<NewOrderModel>('http://localhost:26154/api/CoinSale/recentBuyOrder', params)
+          .pipe(
+           takeUntil(this.$destroySubscription)
+         )
+    )
+  }
+
+  public async processSellOrder(priceHistory: PriceHistoryModel) {
+    let totalAvailableCoinsToSell = this.accountInfo.balances.find(f => f.asset === this.symbol)?.free ?? 0;
+
     let currentCoinBuyOrder = this.currentOrders?.find(f => f.symbol === this.symbolCurrency && f.side === Side.BUY);
     let currentCoinSellOrder = this.currentOrders?.find(f => f.symbol === this.symbolCurrency && f.side === Side.SELL);
     let hasExistingSellOrder = currentCoinSellOrder && currentCoinSellOrder?.orderId ? true : false;
     let hasExistingBuyOrder = currentCoinBuyOrder && currentCoinBuyOrder?.orderId ? true : false;
-
+    let currentUSDBalance = this.accountInfo.balances.find(f => f.asset === this.tradingCurrency)?.free ?? 0;
+    let hasMinimumUSDBalance = currentUSDBalance > +this.minimumBuyPrice;
+    let costPrice = 0;
+    let totalCostPrice = 0;
     // if there is already an existing order or there is no coind to sell then don't buy
-    if (totalAvailableCoins <= 0 || hasExistingSellOrder || hasExistingBuyOrder){
+    if (totalAvailableCoinsToSell <= 0 || hasExistingSellOrder){
         return this.completeTheCycle();
     }
 
-    let costPrice = currentCoinBuyOrder?.price * (currentCoinBuyOrder?.executedQty ?? 0);
+     let filledOrder = await this.getFilledBuyOrder();
 
-    // // if cost price is less then current high price then don't sell it.
-    // if (priceHistory?.highPrice <= costPrice) {
-    //    return this.completeTheCycle();
-    // }
+    //  if (!filledOrder && hasMinimumUSDBalance)
+    //  {
+    //   return this.completeTheCycle();
+    //  }
+
+     if (filledOrder) {
+      costPrice = filledOrder?.price;
+      totalCostPrice = filledOrder?.price * filledOrder?.executedQty;
+     }
+
+    //let costPrice = currentCoinBuyOrder?.price * (currentCoinBuyOrder?.executedQty ?? 0);
+
+    // if cost price is less then current high price then don't sell it.
+    if (priceHistory?.highPrice <= costPrice) {
+       return this.completeTheCycle();
+    }
 
 
-    // // if it does not have minimum profit then we don't buy
-    // let estimatedProfit = ((priceHistory.highPrice * totalAvailableCoins) - costPrice);
-    // let hasMinimumProfit = estimatedProfit >= this.expectedMinimumProfit;
-    // if (!hasMinimumProfit){
-    //    return this.completeTheCycle();
-    // }
+    // if it does not have minimum profit then we don't buy
+    let estimatedProfit = ((priceHistory.highPrice * totalAvailableCoinsToSell) - costPrice * totalAvailableCoinsToSell);
+    let hasMinimumProfit = estimatedProfit >= this.expectedMinimumProfit;
+    if (!hasMinimumProfit){
+       return this.completeTheCycle();
+    }
 
-    this.makeSellOrder(priceHistory);
+    this.makeSellOrder(priceHistory, filledOrder);
   }
 
-  public makeSellOrder(priceHistory: PriceHistoryModel) {
+  public makeSellOrder(priceHistory: PriceHistoryModel, buyOrderDetail: NewOrderModel) {
     let coinAsset = this.accountInfo.balances.find(f => f.asset === this.symbol);
     let usdAsset = this.accountInfo.balances.find(f => f.asset === 'BUSD');
 
-    let totalAvailableCoins = coinAsset?.free || 0;
+    let totalAvailableCoinsToSell = coinAsset?.free || 0;
 
-    let canSellOrder = totalAvailableCoins > 0  && totalAvailableCoins > +this.minimumOrderQuantity;
+    let canSellOrder = totalAvailableCoinsToSell > 0  && totalAvailableCoinsToSell > +this.minimumOrderQuantity;
 
-    let coinsQtyToSell = this.amountOfCoinsToTrade || (+this.maximumOrderQuantity >= totalAvailableCoins) ? totalAvailableCoins : this.maximumOrderQuantity;
+    let coinsQtyToSell = this.amountOfCoinsToTrade || (+this.maximumOrderQuantity >= totalAvailableCoinsToSell) ? totalAvailableCoinsToSell : this.maximumOrderQuantity;
 
     let params: OrderRequest = {
         symbol: this.symbolCurrency,
         quantity: +coinsQtyToSell,
         price: priceHistory.highPrice,
+        clientOrderId: buyOrderDetail?.clientOrderId?.toString() ?? Date.now().toString(),
     };
 
     if (canSellOrder) {
@@ -261,17 +291,75 @@ export class CoinSaleComponent implements OnInit {
       }
   }
 
+  public cancelCurrentOrder(data: CoinMarketInfo) {
+    let params = { params: { symbol: data.symbol, binanceOrderId: data.orderId, clientOrderId: data.clientOrderId } };
+
+    this.httpClient
+      .delete<NewOrderModel[]>(
+        'http://localhost:26154/api/CoinSale/cancelOrder',
+        params
+      )
+      .pipe(takeUntil(this.$destroySubscription))
+      .subscribe({
+        next: (s) => {
+          this.completeTheCycle();
+        },
+        error: (err) => {
+          this.completeTheCycle();
+        },
+        complete: () => {
+          this.completeTheCycle();
+        },
+      });
+  }
+
   public cancelOrder() {
+
     let params = {params: {symbol: this.symbolCurrency}};
-    this.httpClient.get<NewOrderModel[]>('http://localhost:26154/api/CoinSale/cancelOrder', params)
-        .pipe(
-          takeUntil(this.$destroySubscription)
-        )
-        .subscribe({
-          next: (s) => { this.completeTheCycle(); },
-          error: (err) => {this.completeTheCycle(); },
-          complete: () => {this.completeTheCycle(); },
-        });
+
+          this.httpClient.get<NewOrderModel[]>('http://localhost:26154/api/CoinSale/cancelAllOpenOrder', params)
+      .pipe(
+        takeUntil(this.$destroySubscription)
+      )
+      .subscribe({
+        next: (s) => { this.completeTheCycle(); },
+        error: (err) => {this.completeTheCycle(); },
+        complete: () => {this.completeTheCycle(); },
+      });
+
+    // let params = {params: {symbol: this.symbolCurrency, binanceOrderId : 0, clientOrderId: '0'}};
+
+    // let currentBuyOrder = this.currentOrders?.find(f => f.symbol === this.symbolCurrency && f.side === Side.BUY);
+    // let currentSellOrder = this.currentOrders?.find(f => f.symbol === this.symbolCurrency && f.side === Side.SELL);
+
+    // if (currentBuyOrder) {
+    //   params.params.binanceOrderId = currentBuyOrder.binanceOrderId;
+    //   params.params.clientOrderId = currentBuyOrder.clientOrderId;
+    //   this.httpClient.get<NewOrderModel[]>('http://localhost:26154/api/CoinSale/cancelOrder', params)
+    //   .pipe(
+    //     takeUntil(this.$destroySubscription)
+    //   )
+    //   .subscribe({
+    //     next: (s) => { this.completeTheCycle(); },
+    //     error: (err) => {this.completeTheCycle(); },
+    //     complete: () => {this.completeTheCycle(); },
+    //   });
+    // }
+
+    // if (currentSellOrder) {
+    //   params.params.binanceOrderId = currentSellOrder.binanceOrderId;
+    //   params.params.clientOrderId = currentSellOrder.clientOrderId;
+    //   this.httpClient.get<NewOrderModel[]>('http://localhost:26154/api/CoinSale/cancelOrder', params)
+    //   .pipe(
+    //     takeUntil(this.$destroySubscription)
+    //   )
+    //   .subscribe({
+    //     next: (s) => { this.completeTheCycle(); },
+    //     error: (err) => {this.completeTheCycle(); },
+    //     complete: () => {this.completeTheCycle(); },
+    //   });
+    // }
+
   }
 
   public onHoldProcessing() {
